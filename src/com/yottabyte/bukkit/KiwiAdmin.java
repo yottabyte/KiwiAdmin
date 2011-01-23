@@ -91,14 +91,12 @@ public class KiwiAdmin extends JavaPlugin {
 	            		
 	                }
 	            in.close();
-	            }else{
+	         }else{
 	        	    File file = new File("plugins/KiwiAdmin/banlist.txt");
-	                if (!file.exists()) {
 	                  new File("plugins/KiwiAdmin").mkdir();
 	                  file.createNewFile();
 	                  System.out.println("Banlist not found, creating banlist.txt!");
-	                }
-	            }
+	         }
 			}
         catch (IOException e) {
 

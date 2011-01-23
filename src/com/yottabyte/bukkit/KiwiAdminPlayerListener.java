@@ -1,9 +1,14 @@
 
 package com.yottabyte.bukkit;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerListener;
@@ -20,6 +25,54 @@ public class KiwiAdminPlayerListener extends PlayerListener {
     public KiwiAdminPlayerListener(KiwiAdmin instance) {
         plugin = instance;
     }
+    
+    public void removeLineFromFile(String file, String lineToRemove) {
+
+        try {
+
+          File inFile = new File(file);
+          
+          if (!inFile.isFile()) {
+            System.out.println("KiwiAdmin: Can't find banlist.txt!");
+            return;
+          }
+          
+          File tempFile = new File(inFile.getAbsolutePath() + ".tmp");
+          
+          BufferedReader br = new BufferedReader(new FileReader(file));
+          PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
+          
+          String line = null;
+
+          while ((line = br.readLine()) != null) {
+            
+            if (!line.trim().equals(lineToRemove)) {
+
+              pw.println(line);
+              pw.flush();
+            }
+          }
+          pw.close();
+          br.close();
+          
+          //Delete the original file
+          if (!inFile.delete()) {
+            System.out.println("Could not delete file");
+            return;
+          } 
+          
+          //Rename the new file to the filename the original file had.
+          if (!tempFile.renameTo(inFile))
+            System.out.println("Could not rename file");
+          
+        }
+        catch (FileNotFoundException ex) {
+          ex.printStackTrace();
+        }
+        catch (IOException ex) {
+          ex.printStackTrace();
+        }
+      }
     
     public static String combineSplit(int startIndex, String[] string, String seperator) {
         StringBuilder builder = new StringBuilder();
@@ -101,15 +154,88 @@ public class KiwiAdminPlayerListener extends PlayerListener {
 	    		}
 	    	}
 	    }
+	     if(fullMsg[0].equalsIgnoreCase("/unban")){
+		    	if (Permissions.Security.permission(event.getPlayer(), "kiwiadmin.unban")) {
+		    		if (fullMsg.length > 1) {
+		    			String p = fullMsg[1];
+		    			// First, lets remove him from the file
+		    			String file = "plugins/KiwiAdmin/banlist.txt";
+		    	        try {
+		    	            File banlist = new File(file);
+		    	            
+		    	            File tempFile = new File(banlist.getAbsolutePath() + ".tmp");
+		    	            
+		    	            BufferedReader br = new BufferedReader(new FileReader(file));
+		    	            PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
+		    	            
+		    	            String line = null;
+
+		    	            // Loops through the temporary file and deletes the player
+		    	            while ((line = br.readLine()) != null) {
+		    	              if (!line.trim().equals(p)) {
+
+		    	                pw.println(line);
+		    	                pw.flush();
+		    	              }
+		    	            }
+		    	            // All done, SHUT. DOWN. EVERYTHING.
+		    	            pw.close();
+		    	            br.close();
+		    	            
+		    	            // Let's delete the old banlist.txt and change the name of our temporary list!
+		    	            banlist.delete();
+		    	            tempFile.renameTo(banlist);
+		    	            
+		    	          }
+		    	          catch (FileNotFoundException ex) {
+		    	            ex.printStackTrace();
+		    	          }
+		    	          catch (IOException ex) {
+		    	            ex.printStackTrace();
+		    	        }
+		    	     
+			    	    // Now lets remove him from the HashTable.
+			    	    KiwiAdmin.bannedPlayers.remove(p);
+			    	    
+			    	    //Send a message!
+			    	    player.sendMessage("§aUnbanned " + p);
+		    			
+		    		}else{
+		    			player.sendMessage("§eUsage: /unban [player]");
+		    		}
+		    	}
+		    }
+	     if(fullMsg[0].equalsIgnoreCase("/reloadka")){
+		    	if (Permissions.Security.permission(event.getPlayer(), "kiwiadmin.reload")) {
+		    		try {
+		    			KiwiAdmin.bannedPlayers.clear();
+		    			File banlist = new File("plugins/KiwiAdmin/banlist.txt");
+		    	        BufferedReader in = new BufferedReader(new FileReader(banlist));
+		    	        String data = null;
+		    	               
+		    	        while ((data = in.readLine()) != null){
+		    	           //Checking for blank lines
+		    	            if (data.length()>0){
+		    	            	KiwiAdmin.bannedPlayers.put(data, true);
+		    	            }		
+		    	        }
+		    	        in.close();
+		    	        player.sendMessage("§2Reloaded banlist.");
+		    			}
+		            catch (IOException e) {
+		            e.printStackTrace(); 
+		            }
+		    	}
+		    }
     }
     public void onPlayerLogin(PlayerLoginEvent event){
     	Player player = event.getPlayer();
     	Boolean banned = KiwiAdmin.bannedPlayers.get(player.getName());
     	if(banned != null){
     		event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "You are banned from this server.");
-    		System.out.println(player.getName() + " is banned! Deny");
+    		System.out.println(player.getName() + " is banned! Deny!");
     	}else{
-    		System.out.println(player.getName() + " is not banned. Allow");
+    		System.out.println(player.getName() + " is not banned. Allow!");
     	}
     }
 }
