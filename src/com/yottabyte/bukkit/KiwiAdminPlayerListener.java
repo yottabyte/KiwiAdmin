@@ -6,8 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import org.bukkit.event.player.PlayerChatEvent;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerListener;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.entity.Player;
 
 import com.nijikokun.bukkit.Permissions.Permissions;
@@ -102,11 +102,11 @@ public class KiwiAdminPlayerListener extends PlayerListener {
 	    	}
 	    }
     }
-    public void onPlayerJoin(PlayerEvent event){
+    public void onPlayerLogin(PlayerLoginEvent event){
     	Player player = event.getPlayer();
     	Boolean banned = KiwiAdmin.bannedPlayers.get(player.getName());
     	if(banned != null){
-    		player.kickPlayer("You are banned from this server.");
+    		event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "You are banned from this server.");
     		System.out.println(player.getName() + " is banned! Deny");
     	}else{
     		System.out.println(player.getName() + " is not banned. Allow");
