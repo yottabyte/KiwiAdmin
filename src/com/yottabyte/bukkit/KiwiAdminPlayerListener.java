@@ -11,7 +11,6 @@ import org.bukkit.event.player.PlayerListener;
 import org.bukkit.entity.Player;
 
 import com.nijikokun.bukkit.Permissions.Permissions;
-
 /**
  * Simple admin plugin for Bukkit.
  * @author yottabyte
@@ -53,6 +52,7 @@ public class KiwiAdminPlayerListener extends PlayerListener {
         Player player = event.getPlayer();
         String fullMsg[] = event.getMessage().split(" ");
         
+        
         if(fullMsg[0].equalsIgnoreCase("/kick")){
         	if (Permissions.Security.permission(event.getPlayer(), "kiwiadmin.kick")) {
         		if (fullMsg.length > 1) {
@@ -61,9 +61,11 @@ public class KiwiAdminPlayerListener extends PlayerListener {
 	        		if(victim != null){
 	        			if(fullMsg.length < 3){
 	        				victim.kickPlayer("You have been kicked by " + player.getName() + ".");
+	        				plugin.getServer().broadcastMessage("§6" + p + " was kicked by " + player.getName() + ".");
 	        			}else{
 	        				String reason = combineSplit(2, fullMsg, " ");
 	        				victim.kickPlayer("You have been kicked by " + player.getName() + ". Reason: " + reason);
+	        				plugin.getServer().broadcastMessage("§6" + p + " was kicked by " + player.getName() + ". Reason: " + reason);
 	        			}
 	        		}else{
 	        			player.sendMessage("§cKick failed: " + p + " isn't online.");
@@ -75,7 +77,6 @@ public class KiwiAdminPlayerListener extends PlayerListener {
         }
 	     if(fullMsg[0].equalsIgnoreCase("/ban")){
 	    	if (Permissions.Security.permission(event.getPlayer(), "kiwiadmin.ban")) {
-	    		
 	    		if (fullMsg.length > 1) {
 	        		String p = fullMsg[1];
 	        		Player victim = plugin.getServer().getPlayer(p); // What player is really the victim?
@@ -86,12 +87,15 @@ public class KiwiAdminPlayerListener extends PlayerListener {
 	        			
 	        			if(fullMsg.length < 3){ //No reason, just kick.
 	        				victim.kickPlayer("You have been banned by " + player.getName() + ".");
+	        				plugin.getServer().broadcastMessage("§6" + p + " was banned by " + player.getName() + "!");
 	        			}else{ // Look at that, a reason! Good admin :)
 	        				String reason = combineSplit(2, fullMsg, " ");
 	        				victim.kickPlayer("You have been banned by " + player.getName() + ". Reason: " + reason);
+	        				plugin.getServer().broadcastMessage("§6" + p + " was banned by " + player.getName() + "! Reason: " + reason);
 	        			}
+	        		}else{ //The victim wasn't online, let's just notify the admin that he actually banned someone
+	        			player.sendMessage("§6Successfully banned " + p + "!");
 	        		}
-	        		player.sendMessage("§aBanned §4" + p + "§a!"); // Let the banner know that he succeeded.
 	    		}else{
 	    			player.sendMessage("§eUsage: /ban [player] (reason)");
 	    		}
