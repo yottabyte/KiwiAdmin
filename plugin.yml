@@ -1,3 +1,15 @@
 name: KiwiAdmin
 main: com.yottabyte.bukkit.KiwiAdmin
-version: 0.3
+version: 0.4
+website: http://kiwike.se
+author: yottabyte
+description: >
+             Admin plugin for Bukkit, adds important functions like kicking and banning.
+commands:
+  ka:
+    description: All the KiwiAdmin plugins
+    usage: |
+           /<command> kick player [reason] - Kick a player
+           /<command> ban player [reason] - Ban a player
+           /<command> unban player - Unban a player
+           /<command> reload - Reload KiwiAdmin
