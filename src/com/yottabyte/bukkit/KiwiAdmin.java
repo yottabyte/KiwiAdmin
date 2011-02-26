@@ -14,14 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -51,11 +49,6 @@ public class KiwiAdmin extends JavaPlugin {
 	public static Map<String,Boolean> bannedPlayers = new ConcurrentHashMap<String,Boolean>();
 	private final KiwiAdminPlayerListener playerListener = new KiwiAdminPlayerListener(this);
 
-	public KiwiAdmin(PluginLoader pluginLoader, Server instance,
-			PluginDescriptionFile desc, File folder, File plugin,
-			ClassLoader cLoader) {
-		super(pluginLoader, instance, desc, folder, plugin, cLoader);
-	}
 	// NOTE: Event registration should be done in onEnable not here as all events are unregistered when a plugin is disabled
 
 	public void setupPermissions() {
@@ -80,14 +73,6 @@ public class KiwiAdmin extends JavaPlugin {
 		// EXAMPLE: Custom code, here we just output some info so we can check all is well
 		System.out.println("Goodbye world! KiwiAdmin is going to sleep! :(");
 	}
-	private boolean anonymousCheck(CommandSender sender) {
-		if (!(sender instanceof Player)) {
-			sender.sendMessage("Cannot execute that command, I don't know who you are!");
-			return true;
-		} else {
-			return false;
-		}
-	} 
 	public static String combineSplit(int startIndex, String[] string, String seperator) {
 		StringBuilder builder = new StringBuilder();
 
@@ -123,9 +108,15 @@ public class KiwiAdmin extends JavaPlugin {
 		return false;
 	}
 	private boolean unBanPlayer(CommandSender sender, String[] args){
-		if (anonymousCheck(sender)) return false;
-		Player player = (Player)sender;
-		if (Permissions.Security.permission(player, "kiwiadmin.unban")) {
+		boolean auth = false;
+		Player player = null;
+		if (sender instanceof Player){
+			player = (Player)sender;
+			if (Permissions.Security.permission(player, "kiwiadmin.unban")) auth=true;
+		}else{
+			auth = true;
+		}
+		if (auth) {
 			if (args.length > 1) {
 				String p = args[1];
 				// First, lets remove him from the file
@@ -178,138 +169,167 @@ public class KiwiAdmin extends JavaPlugin {
 		return false;
 	}
 	private boolean kickPlayer(CommandSender sender, String[] args){
-		if (anonymousCheck(sender)) return false;
-		Player player = (Player)sender;
-		if (args.length > 1) {
-			String p = args[1];
-			Player victim = this.getServer().getPlayer(p);
-			if(victim != null){
-				if(args.length < 3){
-					victim.kickPlayer("You have been kicked by " + player.getName() + ".");
-					this.getServer().broadcastMessage("§6" + p + " was kicked by " + player.getName() + ".");
+		boolean auth = false;
+		Player player = null;
+		String kicker = "server";
+		if (sender instanceof Player){
+			player = (Player)sender;
+			if (Permissions.Security.permission(player, "kiwiadmin.kick")) auth=true;
+			kicker = player.getName();
+		}else{
+			auth = true;
+		}
+		if (auth) {
+			if (args.length > 1) {
+				String p = args[1];
+				Player victim = this.getServer().getPlayer(p);
+				if(victim != null){
+					if(args.length < 3){
+						victim.kickPlayer("You have been kicked by " + kicker + ".");
+						this.getServer().broadcastMessage("§6" + p + " was kicked by " + kicker + ".");
+					}else{
+						String reason = combineSplit(2, args, " ");
+						victim.kickPlayer("You have been kicked by " + kicker + ". Reason: " + reason);
+						this.getServer().broadcastMessage("§6" + p + " was kicked by " + kicker + ". Reason: " + reason);
+					}
+					return true;
 				}else{
-					String reason = combineSplit(2, args, " ");
-					victim.kickPlayer("You have been kicked by " + player.getName() + ". Reason: " + reason);
-					this.getServer().broadcastMessage("§6" + p + " was kicked by " + player.getName() + ". Reason: " + reason);
+					player.sendMessage("§cKick failed: " + p + " isn't online.");
+					return true;
 				}
-				return true;
-			}else{
-				player.sendMessage("§cKick failed: " + p + " isn't online.");
-				return true;
 			}
-		}
-		return false;
-	}
-private boolean banPlayer(CommandSender sender, String[] args){
-	if (anonymousCheck(sender)) return false;
-	Player player = (Player)sender;
-	if (Permissions.Security.permission(player, "kiwiadmin.ban")) {
-		if (args.length > 1) {
-			String p = args[1];
-			Player victim = this.getServer().getPlayer(p); // What player is really the victim?
-
-			KiwiAdmin.bannedPlayers.put(p, true);
-			try
-			{
-				BufferedWriter banlist = new BufferedWriter(new FileWriter("plugins/KiwiAdmin/banlist.txt",true));
-				banlist.newLine();                    
-				banlist.write(p);
-				banlist.close();
-			}
-			catch(IOException e)          
-			{
-				System.out.println("KiwiAdmin: Couldn't write to banlist.txt");
-				return false;
-			}
-
-			if(victim != null){ // If he is online, kick him with a nice message :)
-
-				if(args.length < 3){ //No reason, just kick.
-					victim.kickPlayer("You have been banned by " + player.getName() + ".");
-					this.getServer().broadcastMessage("§6" + p + " was banned by " + player.getName() + "!");
-				}else{ // Look at that, a reason! Good admin :)
-					String reason = combineSplit(2, args, " ");
-					victim.kickPlayer("You have been banned by " + player.getName() + ". Reason: " + reason);
-					this.getServer().broadcastMessage("§6" + p + " was banned by " + player.getName() + "! Reason: " + reason);
-				}
-				return true;
-			}else{ //The victim wasn't online, let's just notify the admin that he actually banned someone
-				player.sendMessage("§6Successfully banned " + p + "!");
-				return true;
-			}
-		}
-		return false;
-	}
-	return false;
-}
-private boolean reloadKA(CommandSender sender){
-	if (anonymousCheck(sender)) return false;
-	Player player = (Player)sender;
-	if (Permissions.Security.permission(player, "kiwiadmin.reload")) {
-		try {
-			KiwiAdmin.bannedPlayers.clear();
-			File banlist = new File("plugins/KiwiAdmin/banlist.txt");
-			BufferedReader in = new BufferedReader(new FileReader(banlist));
-			String data = null;
-
-			while ((data = in.readLine()) != null){
-				//Checking for blank lines
-				if (data.length()>0){
-					KiwiAdmin.bannedPlayers.put(data, true);
-				}		
-			}
-			in.close();
-			player.sendMessage("§2Reloaded banlist.");
-			return true;
-		}
-		catch (IOException e) {
-			e.printStackTrace(); 
 			return false;
 		}
+		return false;
 	}
-	return false;
-}
+	private boolean banPlayer(CommandSender sender, String[] args){
+		boolean auth = false;
+		Player player = null;
+		String kicker = "server";
+		if (sender instanceof Player){
+			player = (Player)sender;
+			if (Permissions.Security.permission(player, "kiwiadmin.ban")) auth=true;
+			kicker = player.getName();
+		}else{
+			auth = true;
+		}
+		if (auth) {
+			if (args.length > 1) {
+				String p = args[1];
+				Player victim = this.getServer().getPlayer(p); // What player is really the victim?
 
-public void onEnable() {
-	// Register our events   	
-	PluginManager pm = getServer().getPluginManager();
-	pm.registerEvent(Event.Type.PLAYER_COMMAND, playerListener, Priority.Normal, this);
-	pm.registerEvent(Event.Type.PLAYER_LOGIN, playerListener, Priority.Highest, this);
-
-	// EXAMPLE: Custom code, here we just output some info so we can check all is well
-	PluginDescriptionFile pdfFile = this.getDescription();
-	System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
-
-	//read the banlist txt file
-	try {
-
-		File banlist = new File("plugins/KiwiAdmin/banlist.txt");
-
-		if (banlist.exists()){ 
-			BufferedReader in = new BufferedReader(new FileReader(banlist));
-			String data = null;
-
-			while ((data = in.readLine()) != null){
-				//Checking for blank lines
-				if (data.length()>0){
-					bannedPlayers.put(data, true);
+				KiwiAdmin.bannedPlayers.put(p, true);
+				try
+				{
+					BufferedWriter banlist = new BufferedWriter(new FileWriter("plugins/KiwiAdmin/banlist.txt",true));
+					banlist.newLine();                    
+					banlist.write(p);
+					banlist.close();
+				}
+				catch(IOException e)          
+				{
+					System.out.println("KiwiAdmin: Couldn't write to banlist.txt");
+					return false;
 				}
 
+				if(auth){
+					log.log(Level.INFO, "Successfully banned " + p + "!");
+				}
+
+				if(victim != null){ // If he is online, kick him with a nice message :)
+
+					if(args.length < 3){ //No reason, just kick.
+						victim.kickPlayer("You have been banned by " + kicker + ".");
+						this.getServer().broadcastMessage("§6" + p + " was banned by " + kicker + "!");
+					}else{ // Look at that, a reason! Good admin :)
+						String reason = combineSplit(2, args, " ");
+						victim.kickPlayer("You have been banned by " + kicker + ". Reason: " + reason);
+						this.getServer().broadcastMessage("§6" + p + " was banned by " + kicker + "! Reason: " + reason);
+					}
+					return true;
+				}else{ //The victim wasn't online, let's just notify the admin that he actually banned someone
+					sender.sendMessage("§6Successfully banned " + p + "!");
+					return true;
+				}
 			}
-			in.close();
-		}else{
-			File file = new File("plugins/KiwiAdmin/banlist.txt");
-			new File("plugins/KiwiAdmin").mkdir();
-			file.createNewFile();
-			System.out.println("Banlist not found, creating banlist.txt!");
+			return false;
 		}
+		return false;
 	}
-	catch (IOException e) {
+	private boolean reloadKA(CommandSender sender){
+		boolean auth = false;
+		Player player = null;
+		if (sender instanceof Player){
+			player = (Player)sender;
+			if (Permissions.Security.permission(player, "kiwiadmin.reload")) auth=true;
+		}else{
+			auth = true;
+		}
+		if (auth) {
+			try {
+				KiwiAdmin.bannedPlayers.clear();
+				File banlist = new File("plugins/KiwiAdmin/banlist.txt");
+				BufferedReader in = new BufferedReader(new FileReader(banlist));
+				String data = null;
 
-		e.printStackTrace();
+				while ((data = in.readLine()) != null){
+					//Checking for blank lines
+					if (data.length()>0){
+						KiwiAdmin.bannedPlayers.put(data, true);
+					}		
+				}
+				in.close();
+				player.sendMessage("§2Reloaded banlist.");
+				return true;
+			}
+			catch (IOException e) {
+				e.printStackTrace(); 
+				return false;
+			}
+		}
+		return false;
+	}
 
-	}  
-	/*
+	public void onEnable() {
+		// Register our events   	
+		PluginManager pm = getServer().getPluginManager();
+		pm.registerEvent(Event.Type.PLAYER_COMMAND, playerListener, Priority.Normal, this);
+		pm.registerEvent(Event.Type.PLAYER_LOGIN, playerListener, Priority.Highest, this);
+
+		// EXAMPLE: Custom code, here we just output some info so we can check all is well
+		PluginDescriptionFile pdfFile = this.getDescription();
+		System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
+
+		//read the banlist txt file
+		try {
+
+			File banlist = new File("plugins/KiwiAdmin/banlist.txt");
+
+			if (banlist.exists()){ 
+				BufferedReader in = new BufferedReader(new FileReader(banlist));
+				String data = null;
+
+				while ((data = in.readLine()) != null){
+					//Checking for blank lines
+					if (data.length()>0){
+						bannedPlayers.put(data, true);
+					}
+
+				}
+				in.close();
+			}else{
+				File file = new File("plugins/KiwiAdmin/banlist.txt");
+				new File("plugins/KiwiAdmin").mkdir();
+				file.createNewFile();
+				System.out.println("Banlist not found, creating banlist.txt!");
+			}
+		}
+		catch (IOException e) {
+
+			e.printStackTrace();
+
+		}  
+		/*
       //mysql stuff
 
         if (destination.equalsIgnoreCase("mysql"))
@@ -322,6 +342,6 @@ public void onEnable() {
             getServer().getPluginManager().disablePlugin(this);
             return;
           }
-	 */
-}
+		 */
+	}
 }

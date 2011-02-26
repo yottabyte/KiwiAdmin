@@ -10,9 +10,7 @@ import org.bukkit.entity.Player;
  * @author yottabyte
  */
 public class KiwiAdminPlayerListener extends PlayerListener {
-    private final KiwiAdmin plugin;
     public KiwiAdminPlayerListener(KiwiAdmin instance) {
-        plugin = instance;
     }
     
     
