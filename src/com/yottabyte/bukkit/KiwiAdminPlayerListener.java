@@ -1,6 +1,8 @@
 
 package com.yottabyte.bukkit;
 
+import java.util.logging.Level;
+
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.entity.Player;
@@ -13,15 +15,11 @@ public class KiwiAdminPlayerListener extends PlayerListener {
     public KiwiAdminPlayerListener(KiwiAdmin instance) {
     }
     
-    
     public void onPlayerLogin(PlayerLoginEvent event){
     	Player player = event.getPlayer();
-    	Boolean banned = KiwiAdmin.bannedPlayers.get(player.getName());
-    	if(banned != null){
+    	if(KiwiAdmin.bannedPlayers.contains(player.getName().toLowerCase())){
     		event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "You are banned from this server.");
-    		System.out.println(player.getName() + " is banned! Deny!");
-    	}else{
-    		System.out.println(player.getName() + " is not banned. Allow!");
+    		KiwiAdmin.log.log(Level.INFO, player.getName() + " is banned! Deny!");
     	}
     }
 }
