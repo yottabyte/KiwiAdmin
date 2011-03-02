@@ -102,7 +102,7 @@ public class KiwiAdmin extends JavaPlugin {
 					ps = conn.prepareStatement("SELECT * FROM " + LoadSettings.mysqlTable);
 					rs = ps.executeQuery();
 					while (rs.next())
-						bannedPlayers.add(rs.getString("name"));
+						bannedPlayers.add(rs.getString("name").toLowerCase());
 				} catch (SQLException ex) {
 					log.log(Level.SEVERE, "[KiwiAdmin] Couldn't execute MySQL statement: ", ex);
 				} finally {
@@ -165,27 +165,24 @@ public class KiwiAdmin extends JavaPlugin {
 		return builder.toString();
 	}
 
+	@Override
 	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
 		String commandName = command.getName().toLowerCase();
 		String[] trimmedArgs = args;
 
-		if(commandName.equals("ka")){
 			//sender.sendMessage(ChatColor.GREEN + trimmedArgs[0]);
-			if(trimmedArgs.length >= 1){
-				if(trimmedArgs[0].equalsIgnoreCase("reload")){
+				if(commandName.equals("reloadka")){
 					return reloadKA(sender);
 				}
-				if(trimmedArgs[0].equalsIgnoreCase("unban")){
+				if(commandName.equals("unban")){
 					return unBanPlayer(sender,trimmedArgs);
 				}
-				if(trimmedArgs[0].equalsIgnoreCase("ban")){
+				if(commandName.equals("ban")){
 					return banPlayer(sender,trimmedArgs);
 				}
-				if(trimmedArgs[0].equalsIgnoreCase("kick")){
+				if(commandName.equals("kick")){
 					return kickPlayer(sender,trimmedArgs);
 				}
-			}
-		}
 		return false;
 	}
 
@@ -202,10 +199,10 @@ public class KiwiAdmin extends JavaPlugin {
 			auth = true;
 		}
 		if (auth) {
-			if (args.length > 1) {
-				String p = args[1].toLowerCase();
+			if (args.length > 0) {
+				String p = args[0];
 				// First, lets remove him from the file
-				if(KiwiAdmin.bannedPlayers.contains(p)){
+				if(KiwiAdmin.bannedPlayers.contains(p.toLowerCase())){
 					if(LoadSettings.useMysql){
 
 						Connection conn = null;
@@ -213,7 +210,7 @@ public class KiwiAdmin extends JavaPlugin {
 						try {
 							conn = SQLConnection.getSQLConnection();
 							ps = conn.prepareStatement("DELETE FROM " + LoadSettings.mysqlTable + " WHERE name = ?");
-							ps.setString(1, p);
+							ps.setString(1, p.toLowerCase());
 							ps.executeUpdate();
 						} catch (SQLException ex) {
 							sender.sendMessage("§cError when unbanning " + p + "!");
@@ -245,8 +242,7 @@ public class KiwiAdmin extends JavaPlugin {
 
 							// Loops through the temporary file and deletes the player
 							while ((line = br.readLine()) != null) {
-								if (!line.trim().equals(p)) {
-
+								if (!line.trim().toLowerCase().equals(p.toLowerCase()) && line.length() > 0) {
 									pw.println(line);
 									pw.flush();
 								}
@@ -268,7 +264,7 @@ public class KiwiAdmin extends JavaPlugin {
 						}
 					}
 					// Now lets remove him from the array
-					bannedPlayers.remove(p);
+					bannedPlayers.remove(p.toLowerCase());
 
 					//Log in console
 					log.log(Level.INFO, "[KiwiAdmin] " + kicker + " unbanned player " + p + ".");
@@ -302,18 +298,18 @@ public class KiwiAdmin extends JavaPlugin {
 			auth = true;
 		}
 		if (auth) {
-			if (args.length > 1) {
-				String p = args[1].toLowerCase();
+			if (args.length > 0) {
+				String p = args[0].toLowerCase();
 				Player victim = this.getServer().getPlayer(p);
 				if(victim != null){
 					//Log in console
 					log.log(Level.INFO, "[KiwiAdmin] " + kicker + " kicked player " + p + ".");
 
-					if(args.length < 3){
+					if(args.length < 2){
 						victim.kickPlayer("You have been kicked by " + kicker + ".");
 						this.getServer().broadcastMessage("§6" + p + " was kicked by " + kicker + ".");
 					}else{
-						String reason = combineSplit(2, args, " ");
+						String reason = combineSplit(1, args, " ");
 						victim.kickPlayer("You have been kicked by " + kicker + ". Reason: " + reason);
 						this.getServer().broadcastMessage("§6" + p + " was kicked by " + kicker + ". Reason: " + reason);
 					}
@@ -339,21 +335,21 @@ public class KiwiAdmin extends JavaPlugin {
 			auth = true;
 		}
 		if (auth) {
-			if (args.length > 1) {
-				String p = args[1].toLowerCase(); // Get the victim's name
+			if (args.length > 0) {
+				String p = args[0]; // Get the victim's name
 				Player victim = this.getServer().getPlayer(p); // What player is really the victim?
 				String reason = null; //no reason
 
-				if(KiwiAdmin.bannedPlayers.contains(p)){
+				if(KiwiAdmin.bannedPlayers.contains(p.toLowerCase())){
 					sender.sendMessage("§cPlayer §e" + p + " §cis already banned!");
 					return true;
 				}
 
-				if(args.length >= 3){ // ooh, more than 2 arguments, thats a reason! good boy
-					reason = combineSplit(2, args, " ");
+				if(args.length >= 2){ // ooh, more than 2 arguments, thats a reason! good boy
+					reason = combineSplit(1, args, " ");
 				}
 
-				KiwiAdmin.bannedPlayers.add(p); // Remove name from RAM
+				KiwiAdmin.bannedPlayers.add(p.toLowerCase()); // Add name to RAM
 
 				/*
 				 * Do all that fun stuff, open file/table and remove their entry.
@@ -450,7 +446,7 @@ public class KiwiAdmin extends JavaPlugin {
 					ps = conn.prepareStatement("SELECT * FROM " + LoadSettings.mysqlTable);
 					rs = ps.executeQuery();
 					while (rs.next())
-						bannedPlayers.add(rs.getString("name"));
+						bannedPlayers.add(rs.getString("name").toLowerCase());
 				} catch (SQLException ex) {
 					log.log(Level.SEVERE, "[KiwiAdmin] Couldn't execute MySQL statement: ", ex);
 					sender.sendMessage("Error when reloading. :c");
