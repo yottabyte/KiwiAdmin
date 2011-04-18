@@ -1,6 +1,6 @@
 name: KiwiAdmin
 main: com.yottabyte.bukkit.KiwiAdmin
-version: 1.1
+version: 2.0
 website: http://kiwike.se
 author: yottabyte
 description: >
@@ -9,14 +9,18 @@ commands:
   kick:
     description: Kick a player
     usage: /<command> player [reason] - Kick a player
+  tempban:
+    description: Temporarily ban a player
+    usage: /<command> player time [reason] - Temporarily ban a player
   ban:
     description: Ban a player
     usage: /<command> player [reason] - Ban a player
   unban:
     description: Unban a player
     usage: /<command> player - Unban a player
+  checkban:
+    description: Check if a player is banned
+    usage: /<command>
   reloadka:
     description: Reload the banlist
-    usage: /<command> - Reload KiwiAdmin
-           
-           
+    usage: /<command>
