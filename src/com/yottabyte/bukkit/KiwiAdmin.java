@@ -1,8 +1,8 @@
 
 package com.yottabyte.bukkit;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,7 +39,7 @@ public class KiwiAdmin extends JavaPlugin {
 	static Database db;
 	static String maindir = "plugins/KiwiAdmin/";
 	static File Settings = new File(maindir + "config.properties");
-	static ArrayList<String> bannedPlayers = new ArrayList<String>();
+	static HashSet<String> bannedPlayers = new HashSet<String>();
 	static Map<String,Long> tempBans = new HashMap<String,Long>();
 	private final KiwiAdminPlayerListener playerListener = new KiwiAdminPlayerListener(this);
 
