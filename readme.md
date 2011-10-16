@@ -5,11 +5,11 @@ Updating it for the Bukkit community was too big of a hassle and I'd like to foc
 KiwiAdmin broke in a Bukkit update, so here is the latest source that we are using.
 
 It includes some pretty awesome stuff such as
-*Editing bans
-*Ban records
-*Silent bans/kicks
-*IP bans and unbans
-*Warnings
+- Editing bans
+- Ban records
+- Silent bans/kicks
+- IP bans and unbans
+- Warnings
 
 Plugin Usage
 -----
@@ -18,33 +18,41 @@ Plugin Usage
 Putting a -s before the reason will make the action silent, so people won't see the notification.
 
 Kicking a player:
-/kick [player] (-s) (reason)
+/kick player (-s) (reason)
 
 Banning a player:
-/ban [player] (-s) (reason)
+/ban player (-s) (reason)
 
 Unbanning a player:
-/unban (-s) [player]
+/unban player
 
 Temporary banning a player:
-/tempban [player] [time] [min/hour/day] (-s) (reason)
+/tempban player time min/hour/day (-s) (reason)
 
-Editing bans
+### Editing bans
+
 You can edit bans using /editban OR /eban OR /eb
 
 /eb <list/load/id/save/view/reason/time/cancel>
 
 list <player> will list the 10 last legal actions for a player.
+
 load <player> will load the last legal action for a player so you can edit it
+
 id <player> will load the id of a ban. If you want to edit a specific ban, use the list command to find the id.
+
 save will save the thing you are editing.
+
 cancel will stop the editing so you can load another one WITHOUT saving.
+
 view will show information about the action you are currently editing.
 
 reason set <text> will set the reason to whatever.
+
 reason add <text> will add more information to the reason of the action.
 
 time set <amount> <format> will set the lasting of the ban from the initial time.
+
 time add <amount> <format> will add more time to the ban.
 
 Database setup
