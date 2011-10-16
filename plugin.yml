@@ -1,6 +1,6 @@
 name: KiwiAdmin
-main: com.yottabyte.bukkit.KiwiAdmin
-version: 2.0
+main: se.kiwike.yottabyte.KiwiAdmin
+version: 3.0.4
 website: http://kiwike.se
 author: yottabyte
 description: >
@@ -11,7 +11,7 @@ commands:
     usage: /<command> player [reason] - Kick a player
   tempban:
     description: Temporarily ban a player
-    usage: /<command> player time [reason] - Temporarily ban a player
+    usage: /<command> player time timeform [reason] - Temporarily ban a player
   ban:
     description: Ban a player
     usage: /<command> player [reason] - Ban a player
@@ -24,3 +24,16 @@ commands:
   reloadka:
     description: Reload the banlist
     usage: /<command>
+  ipban:
+    description: IP-ban a player
+    usage: /<command> player [reason]
+  exportbans:
+    description: Export bans to banned-players.txt
+    usage: /<command>
+  warn:
+    description: Warn a player
+    usage: /<command> player [reason] - Warn a player
+  editban:
+    description: Edit a ban
+    usage: /<command> <list/load/id/save/view/reason/time/cancel>
+    aliases: [eb,eban]

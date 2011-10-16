@@ -3,6 +3,7 @@ mysql-database: 'jdbc:mysql://localhost:3306/minecraft'
 mysql-user: 'root'
 mysql-password: 'root'
 mysql-table: banlist
+mysql-table-ip: banlistip
 auto-complete: true
 
 messages:
@@ -20,3 +21,4 @@ messages:
     tempbanMsgBroadcast: "&e%victim% &6was temp. banned by &e%player%&6. Reason: &e%reason%"
     LoginTempban: "&cYou are banned until &e%time%&c! Reason: &e%reason%"
     LoginBan: "&cYou are banned from this server! Reason: &e%reason%"
+    LoginIPBan: "&cThis IP is banned!"
