@@ -182,7 +182,7 @@ public class MySQLDatabase{
 		ResultSet rs = null;
 		String mysqlTable = plugin.getConfiguration().getString("mysql-table");
 		try {
-			ps = conn.prepareStatement("SELECT * FROM " + mysqlTable + " WHERE name = ?");
+			ps = conn.prepareStatement("SELECT * FROM " + mysqlTable + " WHERE name = ? ORDER BY id DESC LIMIT 1");
 			ps.setString(1, player);
 			rs = ps.executeQuery();
 			while (rs.next()){
