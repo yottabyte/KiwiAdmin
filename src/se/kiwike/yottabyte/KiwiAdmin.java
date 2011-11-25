@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event;
@@ -47,7 +48,8 @@ public class KiwiAdmin extends JavaPlugin {
 	Map<String, EditBan> banEditors = new HashMap<String, EditBan>();
 	private final KiwiAdminPlayerListener playerListener = new KiwiAdminPlayerListener(this);
 
-	public Configuration properties = new Configuration(new File("plugins/KiwiAdmin/config.yml"));
+	//public Configuration properties = new Configuration(new File("plugins/KiwiAdmin/config.yml"));
+	public FileConfiguration config;
 	public boolean autoComplete;
 
 	// NOTE: Event registration should be done in onEnable not here as all events are unregistered when a plugin is disabled
@@ -79,50 +81,20 @@ public class KiwiAdmin extends JavaPlugin {
 	 * 
 	 * @param name
 	 */
-	protected void createDefaultConfiguration(String name) {
-		File actual = new File(getDataFolder(), name);
-		if (!actual.exists()) {
-
-			InputStream input =
-				this.getClass().getResourceAsStream("/defaults/" + name);
-			if (input != null) {
-				FileOutputStream output = null;
-
-				try {
-					output = new FileOutputStream(actual);
-					byte[] buf = new byte[8192];
-					int length = 0;
-					while ((length = input.read(buf)) > 0) {
-						output.write(buf, 0, length);
-					}
-
-					System.out.println(getDescription().getName()
-							+ ": Default configuration file written: " + name);
-				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
-					try {
-						if (input != null)
-							input.close();
-					} catch (IOException e) {}
-
-					try {
-						if (output != null)
-							output.close();
-					} catch (IOException e) {}
-				}
-			}
-		}
+	protected void setupConfig() {
+		this.config = getConfig();
+		config.options().copyDefaults(true);
+		saveConfig();
+		
 	}
 
 	public void onEnable() {
 		new File(maindir).mkdir();
 
-		createDefaultConfiguration("config.yml");
+		setupConfig();
 
-		properties.load();
 		//boolean useMysql = properties.getBoolean("mysql", false);
-		this.autoComplete = properties.getBoolean("auto-complete", true);
+		this.autoComplete = getConfig().getBoolean("auto-complete", true);
 
 		db = new MySQLDatabase();
 		db.initialize(this);
@@ -275,9 +247,8 @@ public class KiwiAdmin extends JavaPlugin {
 			//Log in console
 			log.log(Level.INFO, "[KiwiAdmin] " + kicker + " unbanned player " + p + ".");
 
-			properties.load();
-			String kickerMsg = properties.getNode("messages").getString("unbanMsg");
-			String globalMsg = properties.getNode("messages").getString("unbanMsgGlobal");
+			String kickerMsg = getConfig().getString("messages.unbanMsgGlobal", "test");
+			String globalMsg = getConfig().getString("messages.unbanMsgGlobal", "test");
 			kickerMsg = kickerMsg.replaceAll("%victim%", p);
 			globalMsg = globalMsg.replaceAll("%victim%", p);
 			globalMsg = globalMsg.replaceAll("%player%", kicker);
@@ -288,8 +259,7 @@ public class KiwiAdmin extends JavaPlugin {
 			return true;
 		}else{
 			//Unban failed
-			properties.load();
-			String kickerMsg = properties.getNode("messages").getString("unbanMsgFailed");
+			String kickerMsg = getConfig().getString("messages.unbanMsgFailed", "test");
 			kickerMsg = kickerMsg.replaceAll("%victim%", p);
 			sender.sendMessage(formatMessage(kickerMsg));
 			return true;
@@ -328,8 +298,7 @@ public class KiwiAdmin extends JavaPlugin {
 			if (sender instanceof Player)
 				if (!Permissions.Security.permission(player, "kiwiadmin.kick.all")) return false;
 
-			properties.load();
-			String kickerMsg = properties.getNode("messages").getString("kickAllMsg");
+			String kickerMsg = getConfig().getString("messages.kickAllMag");
 			kickerMsg = kickerMsg.replaceAll("%player%", kicker);
 			kickerMsg = kickerMsg.replaceAll("%reason%", reason);
 			log.log(Level.INFO, "[KiwiAdmin] " + formatMessage(kickerMsg));
@@ -344,8 +313,7 @@ public class KiwiAdmin extends JavaPlugin {
 			p = expandName(p);
 		Player victim = this.getServer().getPlayer(p);
 		if(victim == null){
-			properties.load();
-			String kickerMsg = properties.getNode("messages").getString("kickMsgFailed");
+			String kickerMsg = getConfig().getString("messages.kickMsgFailed");
 			kickerMsg = kickerMsg.replaceAll("%victim%", p);
 			sender.sendMessage(formatMessage(kickerMsg));
 			return true;
@@ -355,14 +323,14 @@ public class KiwiAdmin extends JavaPlugin {
 		log.log(Level.INFO, "[KiwiAdmin] " + kicker + " kicked player " + p + ". Reason: " + reason);
 
 		//Send message to victim
-		String kickerMsg = properties.getNode("messages").getString("kickMsgVictim");
+		String kickerMsg = getConfig().getString("messages.kickMsgVictim");
 		kickerMsg = kickerMsg.replaceAll("%player%", kicker);
 		kickerMsg = kickerMsg.replaceAll("%reason%", reason);
 		victim.kickPlayer(formatMessage(kickerMsg));
 
 		if(broadcast){
 			//Send message to all players
-			String kickerMsgAll = properties.getNode("messages").getString("kickMsgBroadcast");
+			String kickerMsgAll = getConfig().getString("messages.kickMsgBroadcast");
 			kickerMsgAll = kickerMsgAll.replaceAll("%player%", kicker);
 			kickerMsgAll = kickerMsgAll.replaceAll("%reason%", reason);
 			kickerMsgAll = kickerMsgAll.replaceAll("%victim%", p);
@@ -403,8 +371,7 @@ public class KiwiAdmin extends JavaPlugin {
 		}
 
 		if(bannedPlayers.contains(p.toLowerCase())){
-			properties.load();
-			String kickerMsg = properties.getNode("messages").getString("banMsgFailed");
+			String kickerMsg = getConfig().getString("messages.banMsgFailed");
 			kickerMsg = kickerMsg.replaceAll("%victim%", p);
 			sender.sendMessage(formatMessage(kickerMsg));
 			return true;
@@ -421,14 +388,14 @@ public class KiwiAdmin extends JavaPlugin {
 		if(victim != null){ // If he is online, kick him with a nice message :)
 
 			//Send message to victim
-			String kickerMsg = properties.getNode("messages").getString("banMsgVictim");
+			String kickerMsg = getConfig().getString("messages.banMsgVictim");
 			kickerMsg = kickerMsg.replaceAll("%player%", kicker);
 			kickerMsg = kickerMsg.replaceAll("%reason%", reason);
 			victim.kickPlayer(formatMessage(kickerMsg));
 		}
 		//Send message to all players
 		if(broadcast){
-			String kickerMsgAll = properties.getNode("messages").getString("banMsgBroadcast");
+			String kickerMsgAll = getConfig().getString("messages.banMsgBroadcast");
 			kickerMsgAll = kickerMsgAll.replaceAll("%player%", kicker);
 			kickerMsgAll = kickerMsgAll.replaceAll("%reason%", reason);
 			kickerMsgAll = kickerMsgAll.replaceAll("%victim%", p);
@@ -469,8 +436,7 @@ public class KiwiAdmin extends JavaPlugin {
 		}
 
 		if(bannedPlayers.contains(p.toLowerCase())){
-			properties.load();
-			String kickerMsg = properties.getNode("messages").getString("banMsgFailed");
+			String kickerMsg = getConfig().getString("messages.banMsgFailed");
 			kickerMsg = kickerMsg.replaceAll("%victim%", p);
 			sender.sendMessage(formatMessage(kickerMsg));
 			return true;
@@ -492,14 +458,14 @@ public class KiwiAdmin extends JavaPlugin {
 		if(victim != null){ // If he is online, kick him with a nice message :)
 
 			//Send message to victim
-			String kickerMsg = properties.getNode("messages").getString("tempbanMsgVictim");
+			String kickerMsg = getConfig().getString("messages.tempbanMsgVictim");
 			kickerMsg = kickerMsg.replaceAll("%player%", kicker);
 			kickerMsg = kickerMsg.replaceAll("%reason%", reason);
 			victim.kickPlayer(formatMessage(kickerMsg));
 		}
 		if(broadcast){
 			//Send message to all players
-			String kickerMsgAll = properties.getNode("messages").getString("tempbanMsgBroadcast");
+			String kickerMsgAll = getConfig().getString("messages.tempbanMsgBroadcast");
 			kickerMsgAll = kickerMsgAll.replaceAll("%player%", kicker);
 			kickerMsgAll = kickerMsgAll.replaceAll("%reason%", reason);
 			kickerMsgAll = kickerMsgAll.replaceAll("%victim%", p);
@@ -552,8 +518,7 @@ public class KiwiAdmin extends JavaPlugin {
 		}
 
 		if(bannedPlayers.contains(p.toLowerCase())){
-			properties.load();
-			String kickerMsg = properties.getNode("messages").getString("banMsgFailed");
+			String kickerMsg = getConfig().getString("messages.banMsgFailed");
 			kickerMsg = kickerMsg.replaceAll("%victim%", p);
 			sender.sendMessage(formatMessage(kickerMsg));
 			return true;
@@ -569,14 +534,14 @@ public class KiwiAdmin extends JavaPlugin {
 		log.log(Level.INFO, "[KiwiAdmin] " + kicker + " banned player " + p + ".");
 
 		//Send message to victim
-		String kickerMsg = properties.getNode("messages").getString("banMsgVictim");
+		String kickerMsg = getConfig().getString("messages.banMsgVictim");
 		kickerMsg = kickerMsg.replaceAll("%player%", kicker);
 		kickerMsg = kickerMsg.replaceAll("%reason%", reason);
 		victim.kickPlayer(formatMessage(kickerMsg));
 
 		if(broadcast){
 			//Send message to all players
-			String kickerMsgAll = properties.getNode("messages").getString("banMsgBroadcast");
+			String kickerMsgAll = getConfig().getString("messages.banMsgBroadcast");
 			kickerMsgAll = kickerMsgAll.replaceAll("%player%", kicker);
 			kickerMsgAll = kickerMsgAll.replaceAll("%reason%", reason);
 			kickerMsgAll = kickerMsgAll.replaceAll("%victim%", p);
