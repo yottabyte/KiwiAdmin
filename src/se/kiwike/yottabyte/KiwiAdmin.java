@@ -6,10 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,8 +22,6 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.config.Configuration;
-
 import com.nijikokun.bukkit.Permissions.Permissions;
 
 /**
@@ -86,6 +82,11 @@ public class KiwiAdmin extends JavaPlugin {
 		config.options().copyDefaults(true);
 		saveConfig();
 		
+	}
+	public void setupURL(){
+		String mysqlDatabase = getConfig().getString("mysql-database","jdbc:mysql://localhost:3306/minecraft");
+		String mysqlUser = getConfig().getString("mysql-user","root");
+		String mysqlPassword = getConfig().getString("mysql-password","root");
 	}
 
 	public void onEnable() {

@@ -11,19 +11,22 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.util.config.Configuration;
 
 public class MySQLDatabase{
 
 	KiwiAdmin plugin;
-
+	
+	public MySQLDatabase(KiwiAdmin instance) {
+		this.plugin = instance;
+	}
+	
 	public static Connection getSQLConnection() {
-		Configuration Config = new Configuration(new File("plugins/KiwiAdmin/config.yml"));
-		Config.load();
+		FileConfiguration Config = getConfig();
 		String mysqlDatabase = Config.getString("mysql-database","jdbc:mysql://localhost:3306/minecraft");
 		String mysqlUser = Config.getString("mysql-user","root");
 		String mysqlPassword = Config.getString("mysql-password","root");
-
 		try {
 
 			return DriverManager.getConnection(mysqlDatabase + "?autoReconnect=true&user=" + mysqlUser + "&password=" + mysqlPassword);
@@ -36,7 +39,7 @@ public class MySQLDatabase{
 	public void initialize(KiwiAdmin plugin){
 		this.plugin = plugin;
 		Connection conn = getSQLConnection();
-		String mysqlTable = plugin.getConfiguration().getString("mysql-table");
+		String mysqlTable = plugin.getConfig().getString("mysql-table");
 		if (conn == null) {
 			KiwiAdmin.log.log(Level.SEVERE, "[KiwiAdmin] Could not establish SQL connection. Disabling KiwiAdmin");
 			plugin.getServer().getPluginManager().disablePlugin(plugin);
