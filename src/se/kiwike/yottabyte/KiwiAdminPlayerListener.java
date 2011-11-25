@@ -32,15 +32,13 @@ public class KiwiAdminPlayerListener extends PlayerListener {
 				}
 				Date date = new Date();
 				date.setTime(tempTime*1000);
-				plugin.properties.load();
-				String kickerMsg = plugin.formatMessage(plugin.properties.getNode("messages").getString("LoginTempban"));
+				String kickerMsg = plugin.formatMessage(plugin.getConfig().getString("messages.LoginTempban"));
 				kickerMsg = kickerMsg.replaceAll("%time%", date.toString());
 				kickerMsg = kickerMsg.replaceAll("%reason%", plugin.db.getBanReason(player.getName()));
 				event.disallow(PlayerLoginEvent.Result.KICK_OTHER, kickerMsg);
 				return;
 			}
-			plugin.properties.load();
-			String kickerMsg = plugin.formatMessage(plugin.properties.getNode("messages").getString("LoginBan"));
+			String kickerMsg = plugin.formatMessage(plugin.getConfig().getString("messages.LoginBan"));
 			kickerMsg = kickerMsg.replaceAll("%reason%", plugin.db.getBanReason(player.getName()));
 			event.disallow(PlayerLoginEvent.Result.KICK_OTHER, kickerMsg);
 		}
@@ -52,8 +50,7 @@ public class KiwiAdminPlayerListener extends PlayerListener {
 		if(plugin.bannedIPs.contains(ip)){
 			System.out.println("ip is banned");
 			event.setJoinMessage(null);
-			plugin.properties.load();
-			String kickerMsg = plugin.formatMessage(plugin.properties.getNode("messages").getString("LoginIPBan"));
+			String kickerMsg = plugin.formatMessage(plugin.getConfig().getString("messages.LoginIPBan"));
 			player.kickPlayer(kickerMsg);
 		}
 		if(!plugin.db.matchAddress(player.getName(), ip)){

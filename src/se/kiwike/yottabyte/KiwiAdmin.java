@@ -77,16 +77,11 @@ public class KiwiAdmin extends JavaPlugin {
 	 * 
 	 * @param name
 	 */
-	protected void setupConfig() {
+	public void setupConfig() {
 		this.config = getConfig();
 		config.options().copyDefaults(true);
 		saveConfig();
 		
-	}
-	public void setupURL(){
-		String mysqlDatabase = getConfig().getString("mysql-database","jdbc:mysql://localhost:3306/minecraft");
-		String mysqlUser = getConfig().getString("mysql-user","root");
-		String mysqlPassword = getConfig().getString("mysql-password","root");
 	}
 
 	public void onEnable() {
@@ -97,7 +92,7 @@ public class KiwiAdmin extends JavaPlugin {
 		//boolean useMysql = properties.getBoolean("mysql", false);
 		this.autoComplete = getConfig().getBoolean("auto-complete", true);
 
-		db = new MySQLDatabase();
+		db = new MySQLDatabase(this);
 		db.initialize(this);
 
 		// Register our events   	
