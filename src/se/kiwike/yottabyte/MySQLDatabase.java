@@ -15,12 +15,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 public class MySQLDatabase{
 
 	private KiwiAdmin plugin;
-	
+
 	public MySQLDatabase(KiwiAdmin instance) {
 		plugin = instance;
 	}
-	
-	
+
+
 	public Connection getSQLConnection() {
 		FileConfiguration Config = plugin.getConfig();
 		String mysqlDatabase = Config.getString("mysql-database","jdbc:mysql://localhost:3306/minecraft");
@@ -381,3 +381,4 @@ public class MySQLDatabase{
 	}
 
 }
+
