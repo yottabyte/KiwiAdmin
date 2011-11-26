@@ -1,6 +1,5 @@
 package se.kiwike.yottabyte;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -11,19 +10,22 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.util.config.Configuration;
+import org.bukkit.configuration.file.FileConfiguration;
 
 public class MySQLDatabase{
 
-	KiwiAdmin plugin;
+	private KiwiAdmin plugin;
 
-	public static Connection getSQLConnection() {
-		Configuration Config = new Configuration(new File("plugins/KiwiAdmin/config.yml"));
-		Config.load();
+	public MySQLDatabase(KiwiAdmin instance) {
+		plugin = instance;
+	}
+
+
+	public Connection getSQLConnection() {
+		FileConfiguration Config = plugin.getConfig();
 		String mysqlDatabase = Config.getString("mysql-database","jdbc:mysql://localhost:3306/minecraft");
 		String mysqlUser = Config.getString("mysql-user","root");
 		String mysqlPassword = Config.getString("mysql-password","root");
-
 		try {
 
 			return DriverManager.getConnection(mysqlDatabase + "?autoReconnect=true&user=" + mysqlUser + "&password=" + mysqlPassword);
@@ -36,7 +38,7 @@ public class MySQLDatabase{
 	public void initialize(KiwiAdmin plugin){
 		this.plugin = plugin;
 		Connection conn = getSQLConnection();
-		String mysqlTable = plugin.getConfiguration().getString("mysql-table");
+		String mysqlTable = plugin.getConfig().getString("mysql-table");
 		if (conn == null) {
 			KiwiAdmin.log.log(Level.SEVERE, "[KiwiAdmin] Could not establish SQL connection. Disabling KiwiAdmin");
 			plugin.getServer().getPluginManager().disablePlugin(plugin);
@@ -120,7 +122,7 @@ public class MySQLDatabase{
 
 	public boolean removeFromBanlist(String player) {
 
-		String mysqlTable = plugin.getConfiguration().getString("mysql-table");
+		String mysqlTable = plugin.getConfig().getString("mysql-table");
 
 		Connection conn = null;
 		PreparedStatement ps = null;
@@ -148,7 +150,7 @@ public class MySQLDatabase{
 
 	public void addPlayer(String player, String reason, String kicker, long tempTime , int type){
 
-		String mysqlTable = plugin.getConfiguration().getString("mysql-table");
+		String mysqlTable = plugin.getConfig().getString("mysql-table");
 
 		Connection conn = null;
 		PreparedStatement ps = null;
@@ -180,7 +182,7 @@ public class MySQLDatabase{
 		Connection conn = getSQLConnection();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		String mysqlTable = plugin.getConfiguration().getString("mysql-table");
+		String mysqlTable = plugin.getConfig().getString("mysql-table");
 		try {
 			ps = conn.prepareStatement("SELECT * FROM " + mysqlTable + " WHERE name = ? ORDER BY id DESC LIMIT 1");
 			ps.setString(1, player);
@@ -349,7 +351,7 @@ public class MySQLDatabase{
 
 	public void saveFullRecord(EditBan ban){
 
-		String mysqlTable = plugin.getConfiguration().getString("mysql-table");
+		String mysqlTable = plugin.getConfig().getString("mysql-table");
 
 		Connection conn = null;
 		PreparedStatement ps = null;
@@ -379,3 +381,4 @@ public class MySQLDatabase{
 	}
 
 }
+
